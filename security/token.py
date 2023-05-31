@@ -71,3 +71,5 @@ def validate_token(db: Session, token: str):
             detail="Invalid admin token",
             headers={"WWW-Authenticate": "Bearer"}
         )
+    
+    return user
