@@ -14,10 +14,11 @@ class Users(UsersBase):
 
 class DataBase(BaseModel):
     text: str
+    headings: list[str]
     file_type: str
     
     user_id: int
     
 class Data(DataBase):
-    id: str
+    id: int
     date: date
