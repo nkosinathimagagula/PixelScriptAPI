@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.param_functions import Depends, Body, Header
+from fastapi.param_functions import Depends, Body, Header, File
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from typing import Annotated
@@ -10,10 +10,11 @@ from starlette.responses import JSONResponse
 from PSM.PSTextract import extract_text
 from database import models, crud
 from database.database import SessionLocal, engine
-from schemas.database_schema import UsersBase, DataBase, Data
+from schemas.database_schema import UsersBase, Data
 from schemas.response import Token, Detail
 from security.token import oath2_scheme, ACCESS_TOKEN_EXPIRE_TIME, create_access_token, validate_token
 from security.authenticate import authenticate_user
+from utils.images import bytes_to_gray_image, file_type
 
 
 models.Base.metadata.create_all(bind=engine)
@@ -91,3 +92,25 @@ def create_user(user: Annotated[UsersBase, Body()], db: Session = Depends(get_db
         status_code=status.HTTP_201_CREATED
     )
 
+
+@app.post("/api/PST/extract/", response_model=Data)
+async def extract(image: Annotated[bytes, File()], token:Annotated[str, Depends(get_token_header(oath2_scheme))], db: Session = Depends(get_db)):
+    user = validate_token(db=db, token=token)
+    
+    gray_image = bytes_to_gray_image(image)
+    
+    PSM_result = extract_text(gray_image)
+    
+    data = {
+        "text": PSM_result['text'],
+        "headings": PSM_result['headings'],
+        "file_type": file_type(image),
+        "user_id": user.id
+    }
+    
+    db_data = crud.add_data(db=db, data=data)
+    
+    return JSONResponse(
+        content=db_data,
+        status_code=status.HTTP_200_OK
+    )
