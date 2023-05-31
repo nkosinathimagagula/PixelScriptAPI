@@ -4,8 +4,8 @@ from security.password_hashing import get_password_hash
 from . import models
 
 
-def get_user(db: Session, user: UsersBase):
-    return db.query(models.Users).filter(models.Users.email == user.email).first()
+def get_user(db: Session, email: str):
+    return db.query(models.Users).filter(models.Users.email == email).first()
 
 def create_user(db: Session, user: UsersBase):
     hashed_passord = get_password_hash(user.password)
