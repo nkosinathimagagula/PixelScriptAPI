@@ -8,7 +8,7 @@ class Users(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(30), nullable=False)
     email = Column(String(30), nullable=False, unique=True)
-    password = Column(String(20), nullable=False)
+    password = Column(Text, nullable=False)
 
 
 class Data(Base):
