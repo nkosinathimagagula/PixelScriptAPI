@@ -3,8 +3,6 @@ from schemas.database_schema import UsersBase
 from security.password_hashing import get_password_hash
 from . import models
 
-def get_users(db: Session):
-    return db.query(models.Users).all()
 
 def get_user(db: Session, user: UsersBase):
     return db.query(models.Users).filter(models.Users.email == user.email).first()
