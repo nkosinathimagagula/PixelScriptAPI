@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.param_functions import Depends, Body, Header, File
+from fastapi.param_functions import Depends, Body, Query, Header, File
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import date, timedelta
 from typing import Annotated
 
 from starlette.responses import JSONResponse
@@ -114,3 +114,16 @@ async def extract(image: Annotated[bytes, File()], token:Annotated[str, Depends(
         content=db_data,
         status_code=status.HTTP_200_OK
     )
+
+
+@app.get("/api/PST/extract/data/", response_model=list[Data])
+def read_data(token: Annotated[str, Depends(get_token_header(oath2_scheme))], file_type: Annotated[str | None, Query(alias="filetype", example="image/jpeg")] = None, date: Annotated[date | None, Query(example=date.today())] = None, db: Session = Depends(get_db)):
+    user = validate_token(db=db, token=token)
+    
+    filter = {
+        "date": date,
+        "file_type": file_type,
+        "user_id": user.id
+    }
+    
+    return crud.get_data(db=db, filter=filter)
