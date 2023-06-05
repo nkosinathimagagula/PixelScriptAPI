@@ -1,9 +1,10 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, UploadFile
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.param_functions import Depends, Body, Query, Header, File
 from sqlalchemy.orm import Session
 from datetime import date, timedelta
 from typing import Annotated
+from fastapi.middleware.cors import CORSMiddleware
 
 from starlette.responses import JSONResponse
 
@@ -15,11 +16,22 @@ from schemas.response import Token, Detail
 from security.token import oath2_scheme, ACCESS_TOKEN_EXPIRE_TIME, create_access_token, validate_token
 from security.authenticate import authenticate_user
 from utils.images import bytes_to_gray_image, file_type
+from utils.autocorrect import autocorrect
 
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 ## start of dependencies
 
@@ -54,7 +66,7 @@ def home():
 def generate_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
     user = authenticate_user(db=db, email=form_data.username, password=form_data.password)
     
-    if user is None:
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username/email or password",
@@ -94,15 +106,17 @@ def create_user(user: Annotated[UsersBase, Body()], db: Session = Depends(get_db
 
 
 @app.post("/api/PST/extract/", response_model=Data)
-async def extract(image: Annotated[bytes, File()], token:Annotated[str, Depends(get_token_header(oath2_scheme))], db: Session = Depends(get_db)):
+async def extract(image: Annotated[bytes, File(...)], token:Annotated[str, Depends(get_token_header(oath2_scheme))], db: Session = Depends(get_db)):
     user = validate_token(db=db, token=token)
     
     gray_image = bytes_to_gray_image(image)
     
     PSM_result = extract_text(gray_image)
     
+    autocorrected_text = autocorrect(PSM_result["text"])
+    
     data = {
-        "text": PSM_result['text'],
+        "text": autocorrected_text,
         "headings": PSM_result['headings'],
         "file_type": file_type(image),
         "user_id": user.id
