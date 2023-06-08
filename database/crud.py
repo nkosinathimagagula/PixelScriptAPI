@@ -37,27 +37,61 @@ def get_data(db: Session, filter: dict):
     result = []
     db_response = []
     
-    if filter['date'] is not None and filter['file_type'] is not None:
-        db_response = db.query(models.Data).filter(models.Data.date <= filter['date'], models.Data.file_type == filter['file_type'], models.Data.user_id == filter['user_id']).all()
+    from_date = filter['from_date']
+    to_date = filter['to_date']
+    file_type = filter['file_type']
+    user_id = filter['user_id']
+    
+    if from_date is not None and to_date is not None and file_type is not None:
+        db_response = db.query(models.Data).filter(models.Data.date >= from_date, models.Data.date <= to_date, models.Data.file_type == file_type, models.Data.user_id == user_id).all()
         
         for record in db_response:
             result.append(jsonify_data_record(record))
         
         return result
-    elif filter['date'] is not None and filter['file_type'] is None:
-        db_response = db.query(models.Data).filter(models.Data.date <= filter['date'], models.Data.user_id == filter['user_id']).all()
+    elif from_date is not None and to_date is not None and file_type is None:
+        db_response = db.query(models.Data).filter(models.Data.date >= from_date, models.Data.date <= to_date, models.Data.user_id == user_id).all()
         
         for record in db_response:
             result.append(jsonify_data_record(record))
         
         return result
-    elif filter['date'] is None and filter['file_type'] is not None:
-        db_response = db.query(models.Data).filter(models.Data.file_type == filter['file_type'], models.Data.user_id == filter['user_id']).all()
+    elif from_date is not None and to_date is None and file_type is not None:
+        db_response = db.query(models.Data).filter(models.Data.date >= from_date, models.Data.file_type == file_type, models.Data.user_id == user_id).all()
         
         for record in db_response:
             result.append(jsonify_data_record(record))
         
         return result
+    elif from_date is None and to_date is not None and file_type is not None:
+        db_response = db.query(models.Data).filter(models.Data.date <= to_date, models.Data.file_type == file_type, models.Data.user_id == user_id).all()
+        
+        for record in db_response:
+            result.append(jsonify_data_record(record))
+        
+        return result
+    elif from_date is None and to_date is None and file_type is not None:
+        db_response = db.query(models.Data).filter(models.Data.file_type == file_type, models.Data.user_id == user_id).all()
+        
+        for record in db_response:
+            result.append(jsonify_data_record(record))
+        
+        return result
+    elif from_date is not None and to_date is None and file_type is None:
+        db_response = db.query(models.Data).filter(models.Data.date >= from_date, models.Data.user_id == user_id).all()
+        
+        for record in db_response:
+            result.append(jsonify_data_record(record))
+    
+        return result
+    elif from_date is None and to_date is not None and file_type is None:
+        db_response = db.query(models.Data).filter(models.Data.date <= to_date, models.Data.user_id == user_id).all()
+        
+        for record in db_response:
+            result.append(jsonify_data_record(record))
+    
+        return result
+    
     
     db_response = db.query(models.Data).filter(models.Data.user_id == filter['user_id']).all()
     
