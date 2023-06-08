@@ -87,7 +87,7 @@ def generate_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depend
     
 
 
-@app.post("/api/users/", response_model=Detail)
+@app.post("/api/PST/users/", response_model=Detail)
 def create_user(user: Annotated[UsersBase, Body()], db: Session = Depends(get_db)):
     db_user = crud.get_user(db=db, email=user.email)
     
@@ -131,13 +131,14 @@ async def extract(image: Annotated[bytes, File(...)], token:Annotated[str, Depen
 
 
 @app.get("/api/PST/extract/data/", response_model=list[Data])
-def read_data(token: Annotated[str, Depends(get_token_header(oath2_scheme))], file_type: Annotated[str | None, Query(alias="filetype", example="image/jpeg")] = None, date: Annotated[date | None, Query(example=date.today())] = None, db: Session = Depends(get_db)):
+def read_data(token: Annotated[str, Depends(get_token_header(oath2_scheme))], file_type: Annotated[str | None, Query(alias="filetype", example="PNG")] = None, from_date: Annotated[date | None, Query(alias="fromdate" ,example=date.today())] = None, to_date: Annotated[date | None, Query(alias="todate" ,example=date.today())] = None, db: Session = Depends(get_db)):
     user = validate_token(db=db, token=token)
-    
+   
     filter = {
-        "date": date,
+        "from_date": from_date,
+        "to_date": to_date,
         "file_type": file_type,
         "user_id": user.id
     }
-    
+
     return crud.get_data(db=db, filter=filter)
