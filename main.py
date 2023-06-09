@@ -131,8 +131,17 @@ async def extract(image: Annotated[bytes, File(...)], token:Annotated[str, Depen
 
 
 @app.get("/api/PST/extract/data/", response_model=list[Data])
-def read_data(token: Annotated[str, Depends(get_token_header(oath2_scheme))], file_type: Annotated[str | None, Query(alias="filetype", example="PNG")] = None, from_date: Annotated[date | None, Query(alias="fromdate" ,example=date.today())] = None, to_date: Annotated[date | None, Query(alias="todate" ,example=date.today())] = None, db: Session = Depends(get_db)):
+def read_data(token: Annotated[str, Depends(get_token_header(oath2_scheme))], file_type: Annotated[str, Query(alias="filetype", example="PNG")] = "", from_date: Annotated[date | str, Query(alias="fromdate" ,example=date.today())] = "", to_date: Annotated[date | str, Query(alias="todate" ,example=date.today())] = "", db: Session = Depends(get_db)):
     user = validate_token(db=db, token=token)
+    
+    if file_type == "":
+        file_type = None
+    
+    if from_date == "":
+        from_date = None
+    
+    if to_date == "":
+        to_date = None
    
     filter = {
         "from_date": from_date,
