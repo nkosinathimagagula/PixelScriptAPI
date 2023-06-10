@@ -1,16 +1,16 @@
 from fastapi import FastAPI, HTTPException, status, UploadFile
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.param_functions import Depends, Body, Query, Header, File
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import date, timedelta
 from typing import Annotated
-from fastapi.middleware.cors import CORSMiddleware
 
 from starlette.responses import JSONResponse
 
 from PSM.PSTextract import extract_text
-from database import models, crud
-from database.database import SessionLocal, engine
+from database import crud
+from database.database import Base, SessionLocal, engine
 from schemas.database_schema import UsersBase, Data
 from schemas.response import Token, Detail
 from security.token import oath2_scheme, ACCESS_TOKEN_EXPIRE_TIME, create_access_token, validate_token
@@ -19,7 +19,7 @@ from utils.images import bytes_to_gray_image, file_type
 from utils.autocorrect import autocorrect
 
 
-models.Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
