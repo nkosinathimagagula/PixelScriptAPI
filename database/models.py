@@ -23,4 +23,4 @@ class Data(Base):
     file_type = Column(String(10), nullable=False)
     date = Column(Date, nullable=False, default=date.today())
     
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
