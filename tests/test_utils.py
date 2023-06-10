@@ -35,12 +35,7 @@ def test_autocorrect():
 def test_jsonify_data_record():
     db = TestingSessionLocal()
     
-    create_user = Users(name="test", email="test@test.com", password="test")
-    db.add(create_user)
-    db.commit()
-    db.refresh(create_user)
-    
-    create_record = Data(text="this is inside of a testing function", headings=[], file_type="image/png")
+    create_record = Data(text="this is inside of a testing function", headings=[], file_type="image/png", user_id=1)
     db.add(create_record)
     db.commit()
     db.refresh(create_record)
@@ -50,8 +45,8 @@ def test_jsonify_data_record():
     result = jsonify_data_record(record=record)
     
     # jsonify_data_record basically changes date object to a string
-    assert type(result['date']) == type("")
+    assert type(result['date']) == str
     
     db.delete(record)
-    db.delete(create_user)
     db.commit()
+    db.close()
