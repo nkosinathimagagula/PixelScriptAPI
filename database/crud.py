@@ -1,5 +1,4 @@
 from sqlalchemy.orm import Session
-from datetime import date
 
 from schemas.database_schema import UsersBase, DataBase
 from security.password_hashing import get_password_hash
