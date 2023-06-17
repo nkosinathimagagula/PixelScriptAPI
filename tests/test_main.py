@@ -85,3 +85,32 @@ def test_create_user():
     created_user = db.query(Users).filter(Users.email == "unit@test.com").first()
     db.delete(created_user)
     db.commit()
+    
+
+# also add data and test if you can read it ...
+def test_read_data():
+    token_gen_response = client.post(
+        "/token",
+        data={
+            "username": "test@test.com",
+            "password": "test"
+        },
+        headers={
+            "content-type": "application/x-www-form-urlencoded"
+        }
+    )
+    
+    access_token = token_gen_response.json()['access_token']
+    
+    response = client.get(
+        "/api/PST/extract/data/",
+        headers={
+            "accept": "application/json",
+            "Authorization": "Bearer " + access_token
+        }
+    )
+    
+    data = response.json()
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert type(data) == list
