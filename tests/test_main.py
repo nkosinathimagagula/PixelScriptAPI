@@ -45,6 +45,7 @@ def test_home():
 # -------------------------------------------------------------------
 
 
+# test generating the access token for an existing user in the database
 def test_generate_access_token():
     response = client.post(
         "/token",
@@ -65,6 +66,26 @@ def test_generate_access_token():
     assert data['token_type'] == "bearer"
 
 
+# test generating the access token for a user not in the database
+def test_generate_access_token_for_non_user():
+    response = client.post(
+        "/token",
+        data={
+            "username": "non@user.com",
+            "password": "nonuserpassword"
+        },
+        headers={
+            "content-type": "application/x-www-form-urlencoded"
+        }
+    )
+    
+    data = response.json()
+    
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert data['detail'] == "Invalid username/email or password"
+    
+
+# test creating a user
 def test_create_user():
     response = client.post(
         "/api/PST/users/",
@@ -87,7 +108,7 @@ def test_create_user():
     db.commit()
     
 
-# also add data and test if you can read it ...
+# test reading data from the database
 def test_read_data():
     token_gen_response = client.post(
         "/token",
